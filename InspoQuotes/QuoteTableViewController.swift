@@ -7,8 +7,15 @@
 //
 
 import UIKit
+import StoreKit
 
-class QuoteTableViewController: UITableViewController {
+class QuoteTableViewController: UITableViewController, SKPaymentTransactionObserver {
+
+    // NOTE: when adding a new protocol like SKPaymenTransactionObserver, and want to use a Delegate method, you have to declare a class as the delegate for the protocol.  See ViewDidLoad whereby this class is the delegate for the Observer which will monitor the paymentQueue() each time a payment is triggered and lets us know if successful or not.
+    
+    
+    
+    let productID = "com.hotcoolapps.InspoQuotesJR.premiumQuotesJR"
     
     var quotesToShow = [
         "Our greatest glory is not in never falling, but in rising every time we fall. — Confucius",
@@ -30,6 +37,7 @@ class QuoteTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        SKPaymentQueue.default().add(self)
 
     }
 
@@ -49,7 +57,9 @@ class QuoteTableViewController: UITableViewController {
         }else{
             cell.textLabel?.text = "Get More Quotes"
             cell.textLabel?.textColor = #colorLiteral(red: 0.1411764771, green: 0.3960784376, blue: 0.5647059083, alpha: 1)
-            cell.accessoryType = .detailDisclosureButton  //makes cell content clickable like a button or hyperlink with a > symbol
+           // cell.accessoryType = .detailDisclosureButton  //makes cell content clickable like a button or hyperlink with a > symbol
+            cell.accessoryType = .disclosureIndicator //
+            
         }
         return cell
     }
@@ -66,7 +76,30 @@ class QuoteTableViewController: UITableViewController {
     }
     
     func buyPremiumQuotes(){
+        if SKPaymentQueue.canMakePayments() {
+            //Can make payments                         //child payments not allowed if can make payments
+            let paymentRequest = SKMutablePayment()
+            paymentRequest.productIdentifier = productID
+            SKPaymentQueue.default().add(paymentRequest)
+        } else {
+            //can't make payments
+            
+        }
         
+    }
+    
+    func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
+        //note SKPaymentTransaction is an array of payments
+        for transaction in transactions {
+            if transaction.transactionState == .purchased {
+                //User payment successful
+                print("Trans successful")
+
+            } else if transaction.transactionState == .failed {
+                print("Trans failed")
+
+            }
+        }
     }
 
     @IBAction func restorePressed(_ sender: UIBarButtonItem) {
